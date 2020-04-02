@@ -1,6 +1,10 @@
 package com.tuppl.institute.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tuppl.institute.rest.model.Employee;
+import com.tuppl.institute.rest.model.Student;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Classroom {
@@ -10,6 +14,20 @@ public class Classroom {
 	int chairs;
 	int tables;
 	boolean hasProjector;
+	List<Student> studentList;
+	Employee teacher;
+	public Employee getTeacher() {
+		return teacher;
+	}
+	public void setTeacher(Employee teacher) {
+		this.teacher = teacher;
+	}
+	public List<Student> getStudentList() {
+		return studentList;
+	}
+	public void setStudentList(List<Student> studentList) {
+		this.studentList = studentList;
+	}
 	public String getName() {
 		return name;
 	}

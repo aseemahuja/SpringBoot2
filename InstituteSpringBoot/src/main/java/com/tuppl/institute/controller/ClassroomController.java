@@ -22,6 +22,8 @@ import com.tuppl.institute.model.Classroom;
 import com.tuppl.institute.model.ClassroomDataRequest;
 import com.tuppl.institute.model.GetClassroomByIdResponse;
 import com.tuppl.institute.model.GetClassroomListResponse;
+import com.tuppl.institute.rest.model.StudentDataRequest;
+import com.tuppl.institute.services.ClassroomService;
 
 @RestController
 @RequestMapping("/classroom")
@@ -29,6 +31,9 @@ public class ClassroomController {
 	
 	@Autowired
 	ClassroomDataSource classroomDataSource;
+	
+	@Autowired
+	ClassroomService classroomService;
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClassroomController.class);
 	
@@ -47,29 +52,23 @@ public class ClassroomController {
 	
 	@RequestMapping(value="/byId/{classroomId}", method= RequestMethod.GET)
 	public ResponseEntity<GetClassroomByIdResponse> classroomDataById(@PathVariable(value="classroomId") String classroomId){
-		GetClassroomByIdResponse response = new GetClassroomByIdResponse();
+
 		if(StringUtils.isEmpty(classroomId)) {
 			throw new ServiceException("CLASSROOM_ID_NOT_FOUND");
 		}
 		
-		List<Classroom> classroomList = classroomDataSource.getClassRoomList();
-		Optional<Classroom> classroomOptional = classroomList
-				.stream()
-				.filter(classroom -> classroomId.compareTo(classroom.getId())==0)
-				.findFirst();
+		GetClassroomByIdResponse response = classroomService.classroomDataById(classroomId);
 		
-		if(!classroomOptional.isPresent()) {
-			response.setErrorMessage("Classroom Id not found");
+		if(null== response.getClassroom()) {
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		} else {
-			response.setClassroom(classroomOptional.get());
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 		
 	}
 	
 	@RequestMapping(value="/add", method= RequestMethod.POST)
-	public ResponseEntity<GetClassroomListResponse> addStudent(@RequestBody ClassroomDataRequest classroomDataRequest){
+	public ResponseEntity<GetClassroomListResponse> addClassroom(@RequestBody ClassroomDataRequest classroomDataRequest){
 		GetClassroomListResponse response = new GetClassroomListResponse();
 		if(null== classroomDataRequest
 				|| null== classroomDataRequest.getClassroom()
@@ -83,6 +82,27 @@ public class ClassroomController {
 		response.setClassroomList(classroomList);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value="/addStudent/{classroomId}", method=RequestMethod.POST)
+	public ResponseEntity<GetClassroomByIdResponse> addStudentToClass(
+			@RequestBody StudentDataRequest studentDataRequest, @PathVariable(value="classroomId") String classroomId){
+		GetClassroomByIdResponse response = new GetClassroomByIdResponse();
+		
+		if(StringUtils.isEmpty(classroomId) || null== studentDataRequest) {
+			response.setErrorMessage("Request is invalid.");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+		
+		response = classroomService.addStudentToClass(studentDataRequest, classroomId);
+		
+		if(!StringUtils.isEmpty(response.getErrorMessage())) {
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		} else {
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		
+	}
+	
 	
 	
 	
